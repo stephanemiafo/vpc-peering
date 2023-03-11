@@ -16,6 +16,14 @@ Parameters:
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
     Default: '10.0.0.0/16'
 
+  MyPeerVPCCidr:
+    Description: Enter the IP range (CIDR notation) for the Acceptor VPC
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})               # Must be commented in STEP 1
+    Default: '192.168.0.0/16'
+
   PublicSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
     Type: String
@@ -66,22 +74,37 @@ Parameters:
     Default: 'tcp'
 
   SshSGCidrBlock:
-    Description: The source IPv4 CIDR range to allow or deny, in CIDR notation # for example, 172.16.0.0/24)
+    Description: The source IPv4 CIDR range to allow or deny, in CIDR notation 
     Type: String
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})      
     Default: '10.0.0.0/16'
 
-  # SGPortRange:
-  #   Description: Simple Description of a Number Parameter
-  #   Type: Number
-  #   MinValue: 20
-  #   MaxValue: 65535
+  SshSGPortRange:
+    Description: Simple Description of a Number Parameter
+    Type: Number
+    MinValue: 0
+    MaxValue: 65535
+    Default: 22
+
+  HttpSGPortRange:
+    Description: Simple Description of a Number Parameter
+    Type: Number
+    MinValue: 0
+    MaxValue: 65535
+    Default: 80
+
+  SGPortRange:
+    Description: Description of the icmp Number Parameter
+    Type: Number
+    MinValue: 0
+    MaxValue: 65535 
+    Default: 8
    
-  # SGProtocol1: 
-  #   Type: String
-    # Default: icmp
+  SGProtocol1: 
+    Type: String
+    Default: "icmp"
 
   HttpSGCidrBlock:
     Description: The source IPv4 CIDR range to allow or deny, in CIDR notation # for example, 172.16.0.0/24)
@@ -90,6 +113,18 @@ Parameters:
     MaxLength: '18'   
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
     Default: '0.0.0.0/0'
+
+  MyPeerRegion: 
+    Description: The Region code for the Aceeptor VPC               # Must be commented in STEP 1
+    Type: String
+    Default: 'us-east-2'
+
+  PeerVpcId: 
+    Description: The Id of the Aceeptor VPC                    # Must be commented in STEP 1
+    Type: String
+    Default: "vpc-0cbeeb31540f8fc32"
+
+
  
 Resources:
   VPC:
@@ -101,6 +136,21 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${EnvironmentName}-VPC" 
+
+  # When establishing peering connection between VPCs in different Regions, 
+  # the request must be made from the Region of the requester VPC.
+  VPCPeeringRequest:                      # PEERING TWO VPCs IN THE SAME REGION
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      PeerRegion: 
+        Ref: MyPeerRegion                    # REGION WHERE THE ACCEPTER-VPC LIVE
+      VpcId: 
+        Ref: VPC                                                                     # Must be commented in STEP 1
+      PeerVpcId: 
+        Ref: PeerVpcId           # THE ID OF THE ACCEPTOR VPC 
+      Tags:
+      - Key: Name
+        Value: !Sub "${EnvironmentName}-Vpc-peering"
 
   InternetGateway:                                            
     Type: AWS::EC2::InternetGateway
@@ -163,6 +213,18 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: !Ref HttpSGCidrBlock
       GatewayId: !Ref InternetGateway
+
+  PeeringRoute:
+  # FOR LACK OF BETTER WORD, USE THE LEAST PRIVILEDGE PRINCIPLE TO ALLOW ONLY THE SUBNETS OR 
+  # THE ACTUAL INSTANCES THAT WILL USE THE PEERING CONNECTION. Prefix-list CAN HELP ACCOMPLISH THAT.
+  # IN OTHER WORD DO NOT USE THE VpcCidr for DestinationCidrBlock (line 663)
+    Type: AWS::EC2::Route
+    # DependsOn: VPCPeeringRequest
+    Properties:
+      RouteTableId: !Ref PublicRouteTable                   # Must be commented in STEP 1
+      DestinationCidrBlock:
+        Ref: MyPeerVPCCidr                        # This can also be from subnet(s), EC2(s), or prefix-links
+      VpcPeeringConnectionId: !Ref VPCPeeringRequest
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -275,13 +337,18 @@ Resources:
 
         - CidrIp: !Ref HttpSGCidrBlock
           IpProtocol: !Ref SGProtocol
-          FromPort: 80      #!Ref SGPortRange
-          ToPort: 80        #!Ref SGPortRange
+          FromPort: !Ref HttpSGPortRange
+          ToPort: !Ref HttpSGPortRange
            
         - CidrIp: !Ref SshSGCidrBlock             
           IpProtocol: !Ref SGProtocol
-          FromPort: 22          #!Ref SGPortRange
-          ToPort: 22          #!Ref SGPortRange
+          FromPort: !Ref SshSGPortRange
+          ToPort: !Ref SshSGPortRange
+
+        - CidrIp: !Ref MyPeerVPCCidr             
+          IpProtocol: !Ref SGProtocol1
+          FromPort: !Ref SGPortRange             # Must be commented in STEP 1
+          ToPort: !Ref SGPortRange
 
       VpcId: !Ref VPC
       Tags:
@@ -304,3 +371,7 @@ Outputs:
   MyPubInstanceTest2ID:
     Description: The ID of the second instance
     Value: !Ref MyPubInstanceTest2
+
+  VPCPeeringRequestID:      # This logical name must be unique within the template.
+    Description: The ID of the peering connection                                  # Must be commented in STEP 1
+    Value: !GetAtt VPCPeeringRequest.Id 
