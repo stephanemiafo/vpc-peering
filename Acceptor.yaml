@@ -54,6 +54,7 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH to the instance.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+    Default: 'mire'
 
   SsmPolicy:
     Description: The policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality.
@@ -278,7 +279,9 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash
-          yum install httpd mysql php php-mysql -y
+          sudo yum update -y
+          sudo yum upgrade -y
+          sudo yum install httpd mysql php php-mysql -y
           amazon-linux-extras install -y php7.2
           cd /var/www/html
           wget https://wordpress.org/latest.tar.gz
@@ -287,7 +290,7 @@ Resources:
           rm -rf wordpress
           rm -rf latest.tar.gz
           service httpd start
-          systemctl enable httpd
+          chkconfig httpd on
           
   PublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup

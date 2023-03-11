@@ -254,7 +254,9 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash 
-          yum install httpd mysql php php-mysql -y
+          sudo yum update -y
+          sudo yum upgrade -y
+          sudo yum install httpd mysql php php-mysql -y
           amazon-linux-extras install -y php7.2
           cd /var/www/html
           wget https://wordpress.org/latest.tar.gz
