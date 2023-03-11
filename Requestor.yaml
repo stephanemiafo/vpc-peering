@@ -54,6 +54,7 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH to the instance.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+    Default: "playground"
 
   SsmPolicy:
     Description: The policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality.
@@ -72,11 +73,11 @@ Parameters:
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})      
     Default: '10.0.0.0/16'
 
-  SGPortRange:
-    Description: Simple Description of a Number Parameter
-    Type: Number
-    MinValue: 20
-    MaxValue: 65535
+  # SGPortRange:
+  #   Description: Simple Description of a Number Parameter
+  #   Type: Number
+  #   MinValue: 20
+  #   MaxValue: 65535
    
   # SGProtocol1: 
   #   Type: String
@@ -272,13 +273,13 @@ Resources:
 
         - CidrIp: !Ref HttpSGCidrBlock
           IpProtocol: !Ref SGProtocol
-          FromPort: !Ref SGPortRange
-          ToPort: !Ref SGPortRange
+          FromPort: 80      #!Ref SGPortRange
+          ToPort: 80        #!Ref SGPortRange
            
         - CidrIp: !Ref SshSGCidrBlock             
           IpProtocol: !Ref SGProtocol
-          FromPort: !Ref SGPortRange
-          ToPort: !Ref SGPortRange
+          FromPort: 22          #!Ref SGPortRange
+          ToPort: 22          #!Ref SGPortRange
 
       VpcId: !Ref VPC
       Tags:
