@@ -54,7 +54,7 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH to the instance.
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: Must be the name of an existing EC2 KeyPair.
-    Default: 'mire'
+    Default: 'Ansible'
 
   SsmPolicy:
     Description: The policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality.
