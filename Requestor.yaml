@@ -301,6 +301,6 @@ Outputs:
     Description: The ID of the first instance
     Value: !Ref MyPubTestInstance1
 
-  MyPubTestInstance2ID:
+  MyPubInstanceTest2ID:
     Description: The ID of the second instance
-    Value: !Ref MyPubTestInstance2
+    Value: !Ref MyPubInstanceTest2
