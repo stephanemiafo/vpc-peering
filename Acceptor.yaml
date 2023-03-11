@@ -61,22 +61,22 @@ Parameters:
     Type: String 
     Default: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' 
 
-  # MyPeerVPCCidr:
-  #   Description: the IP range (CIDR notation) for the VPC being peered with this VPC
-  #   Type: String
-  #   Default:
+  MyPeerVPCCidr:
+    Description: the IP range (CIDR notation) for the Requestor VPC         # Must be commented in STEP 1
+    Type: String
+    Default: "10.0.0.0/16"
 
-  # VpcPeeringConnection:
-  #   Description: The ID of the Peering Connection
-  #   Type: String
-  #   Default:
+  VpcPeeringConnection:
+    Description: The ID of the peering connection                    # Must be commented in STEP 1
+    Type: String
+    Default: "pcx-04ec1079e97312c7c"
 
   SGProtocol: 
     Type: String
     Default: tcp
 
   SshSGCidrBlock:
-    Description: The source IPv4 CIDR range to allow or deny, in CIDR notation # for example, 172.16.0.0/24)
+    Description: The source IPv4 CIDR range to allow or deny, in CIDR notation 
     Type: String
     MinLength: '9'
     MaxLength: '18'
@@ -96,10 +96,17 @@ Parameters:
     MinValue: 0
     MaxValue: 65535
     Default: 80
+
+  SGPortRange:
+    Description: Description of the icmp Number Parameter
+    Type: Number
+    MinValue: 0
+    MaxValue: 65535 
+    Default: 8
    
-  # SGProtocol1: 
-  #   Type: String
-    # Default: icmp
+  SGProtocol1: 
+    Type: String
+    Default: icmp
 
   HttpSGCidrBlock:
     Description: The source IPv4 CIDR range to allow or deny, in CIDR notation # for example, 172.16.0.0/24)
@@ -182,13 +189,13 @@ Resources:
       DestinationCidrBlock: !Ref HttpSGCidrBlock
       GatewayId: !Ref InternetGateway
 
-  # PeeringRoute:
-  #   Type: AWS::EC2::Route
-  #   Properties:
-  #     RouteTableId: !Ref PublicRouteTable
-  #     DestinationCidrBlock: 
-  #       Ref: MyPeerVPCCidr                          # CIDR VPC REQUESTER
-  #     VpcPeeringConnectionId: !Ref VpcPeeringConnection       # ID OF THE PEERED CONNECTION CREATED BY THE REQUESTER
+  PeeringRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 
+        Ref: MyPeerVPCCidr                          # CIDR VPC REQUESTER
+      VpcPeeringConnectionId: !Ref VpcPeeringConnection       # ID OF THE PEERED CONNECTION CREATED BY THE REQUESTER
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -308,11 +315,11 @@ Resources:
           FromPort: !Ref SshSGPortRange
           ToPort: !Ref SshSGPortRange
         
-        # - IpProtocol: !Ref SGProtocol1      # This rule creates an ingress rule  that allows Custom ICMP traffic with type 8 and code 0 (ICMP echo requests).
-        #   FromPort: !Ref SGPortRange           # So we can run the ping cmd from CIDR of the VPC ACCEPTER. ping will work only with private ip because of the vpc-peering
-        #   ToPort: !Ref SGPortRange
-        #   CidrIp: 
-        #     Ref: MyPeerVPCCidr              # CIDR of the VPC REQUESTER
+        - IpProtocol: !Ref SGProtocol1      # This rule creates an ingress rule  that allows Custom ICMP traffic with type 8 and code 0 (ICMP echo requests).
+          FromPort: !Ref SGPortRange           # So we can run the ping cmd from CIDR of the VPC ACCEPTER. ping will work only with private ip because of the vpc-peering
+          ToPort: !Ref SGPortRange
+          CidrIp: 
+            Ref: MyPeerVPCCidr              # CIDR of the VPC REQUESTER
       
       VpcId: !Ref VPC
       Tags:
