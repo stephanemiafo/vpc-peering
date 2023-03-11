@@ -85,14 +85,16 @@ Parameters:
   SshSGPortRange:
     Description: Simple Description of a Number Parameter
     Type: Number
-    MinValue: 22
-    MaxValue: 22
+    MinValue: 0
+    MaxValue: 65535
+    Default: 22
 
   HttpSGPortRange:
     Description: Simple Description of a Number Parameter
     Type: Number
-    MinValue: 80
-    MaxValue: 80
+    MinValue: 0
+    MaxValue: 65535
+    Default: 80
    
   # SGProtocol1: 
   #   Type: String

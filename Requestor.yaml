@@ -252,7 +252,7 @@ Resources:
       IamInstanceProfile:       
         Ref: RootInstanceProfile
       UserData:
-        Fn::Base64: 
+        Fn::Base64: |
           #!/bin/bash 
           yum install httpd mysql php php-mysql -y
           amazon-linux-extras install -y php7.2
@@ -263,7 +263,7 @@ Resources:
           rm -rf wordpress
           rm -rf latest.tar.gz
           service httpd start
-          systemctl enable httpd
+          chkconfig httpd on
 
   PublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup
