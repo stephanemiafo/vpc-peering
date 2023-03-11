@@ -2,7 +2,7 @@ Parameters:
   EnvironmentName:
     Description: An environment name that is prefixed to resource names
     Type: String
-    # Default: "test"
+    Default: "test"
     AllowedValues: 
       - test
       - dev
@@ -14,7 +14,7 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    # Default: 192.168.0.0/16
+    Default: "192.168.0.0/16"
 
   PublicSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
@@ -22,7 +22,7 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    # Default: 192.168.0.0/24
+    Default: "192.168.0.0/24"
 
   PublicSubnet2CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
@@ -30,7 +30,7 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    # Default: 192.168.1.0/24
+    Default: "192.168.1.0/24"
 
   PublicSubnet3CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone
@@ -38,17 +38,17 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    # Default: 192.168.2.0/24
+    Default: "192.168.2.0/24"
 
   InstanceType:
     Description: Instance hosting a web server.
     Type: String
-    # Default: t2.micro
+    Default: "t2.micro"
     
   ImageId:
     Description: Template that will run on the EC2
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    # Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
   MyKeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH to the instance.
@@ -58,19 +58,21 @@ Parameters:
   SsmPolicy:
     Description: The policy for Amazon EC2 Role to enable AWS Systems Manager service core functionality.
     Type: String 
-    # Default: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' 
+    Default: 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore' 
 
-  MyPeerVPCCidr:
-    Description: the IP range (CIDR notation) for the VPC being peered with this VPC
-    Type: String
+  # MyPeerVPCCidr:
+  #   Description: the IP range (CIDR notation) for the VPC being peered with this VPC
+  #   Type: String
+  #   Default:
 
-  VpcPeeringConnection:
-    Description: The ID of the Peering Connection
-    Type: String
+  # VpcPeeringConnection:
+  #   Description: The ID of the Peering Connection
+  #   Type: String
+  #   Default:
 
   SGProtocol: 
     Type: String
-    # Default: tcp
+    Default: tcp
 
   SshSGCidrBlock:
     Description: The source IPv4 CIDR range to allow or deny, in CIDR notation # for example, 172.16.0.0/24)
@@ -78,16 +80,22 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})      
-    # Default: !Ref VpcCIDR
+    Default: "173.164.135.61/32"         # !Ref VpcCIDR
 
-  SGPortRange:
+  SshSGPortRange:
     Description: Simple Description of a Number Parameter
     Type: Number
-    MinValue: 20
-    MaxValue: 65535
+    MinValue: 22
+    MaxValue: 22
+
+  HttpSGPortRange:
+    Description: Simple Description of a Number Parameter
+    Type: Number
+    MinValue: 80
+    MaxValue: 80
    
-  SGProtocol1: 
-    Type: String
+  # SGProtocol1: 
+  #   Type: String
     # Default: icmp
 
   HttpSGCidrBlock:
@@ -96,7 +104,7 @@ Parameters:
     MinLength: '9'
     MaxLength: '18'   
     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})
-    # Default: 0.0.0.0/0
+    Default: "0.0.0.0/0"
 
 Resources:
   VPC:
@@ -171,13 +179,13 @@ Resources:
       DestinationCidrBlock: !Ref HttpSGCidrBlock
       GatewayId: !Ref InternetGateway
 
-  PeeringRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      DestinationCidrBlock: 
-        Ref: MyPeerVPCCidr                          # CIDR VPC REQUESTER
-      VpcPeeringConnectionId: !Ref VpcPeeringConnection       # ID OF THE PEERED CONNECTION CREATED BY THE REQUESTER
+  # PeeringRoute:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     RouteTableId: !Ref PublicRouteTable
+  #     DestinationCidrBlock: 
+  #       Ref: MyPeerVPCCidr                          # CIDR VPC REQUESTER
+  #     VpcPeeringConnectionId: !Ref VpcPeeringConnection       # ID OF THE PEERED CONNECTION CREATED BY THE REQUESTER
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -266,7 +274,7 @@ Resources:
       IamInstanceProfile:       
         Ref: RootInstanceProfile
       UserData:
-        Fn::Base64: !Sub |
+        Fn::Base64: |
           #!/bin/bash
           yum install httpd mysql php php-mysql -y
           amazon-linux-extras install -y php7.2
@@ -277,7 +285,7 @@ Resources:
           rm -rf wordpress
           rm -rf latest.tar.gz
           service httpd start
-          chkconfig httpd on
+          systemctl enable httpd
           
   PublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -287,19 +295,19 @@ Resources:
       
         - CidrIp: !Ref HttpSGCidrBlock
           IpProtocol: !Ref SGProtocol
-          FromPort: !Ref SGPortRange
-          ToPort: !Ref SGPortRange  
+          FromPort: !Ref HttpSGPortRange
+          ToPort: !Ref HttpSGPortRange  
 
         - CidrIp: !Ref SshSGCidrBlock             
           IpProtocol: !Ref SGProtocol
-          FromPort: !Ref SGPortRange
-          ToPort: !Ref SGPortRange
+          FromPort: !Ref SshSGPortRange
+          ToPort: !Ref SshSGPortRange
         
-        - IpProtocol: !Ref SGProtocol1      # This rule creates an ingress rule  that allows Custom ICMP traffic with type 8 and code 0 (ICMP echo requests).
-          FromPort: !Ref SGPortRange           # So we can run the ping cmd from CIDR of the VPC ACCEPTER. ping will work only with private ip because of the vpc-peering
-          ToPort: !Ref SGPortRange
-          CidrIp: 
-            Ref: MyPeerVPCCidr              # CIDR of the VPC REQUESTER
+        # - IpProtocol: !Ref SGProtocol1      # This rule creates an ingress rule  that allows Custom ICMP traffic with type 8 and code 0 (ICMP echo requests).
+        #   FromPort: !Ref SGPortRange           # So we can run the ping cmd from CIDR of the VPC ACCEPTER. ping will work only with private ip because of the vpc-peering
+        #   ToPort: !Ref SGPortRange
+        #   CidrIp: 
+        #     Ref: MyPeerVPCCidr              # CIDR of the VPC REQUESTER
       
       VpcId: !Ref VPC
       Tags:

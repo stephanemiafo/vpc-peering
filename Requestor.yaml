@@ -263,7 +263,7 @@ Resources:
           rm -rf wordpress
           rm -rf latest.tar.gz
           service httpd start
-          chkconfig httpd on
+          systemctl enable httpd
 
   PublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup
