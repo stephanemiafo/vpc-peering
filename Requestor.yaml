@@ -234,7 +234,7 @@ Resources:
       # not curly or smart quotes, which may cause issues when running the script.
      
 
-  MyPubTestInstance2: 
+  MyPubInstanceTest2: 
     Type: AWS::EC2::Instance
     Properties: 
       ImageId: 
