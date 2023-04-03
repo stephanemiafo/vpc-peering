@@ -21,13 +21,13 @@ phases:
       - echo installing cfn-lint
       - pip3 install cfn-lint
       - echo validate cfn template 
-      - cfn-lint Requestor.yaml
+      - cfn-lint Acceptor.yaml
       - echo package the cfn template
-      - aws cloudformation package --template-file Requestor.yaml --s3-bucket mynewestfirstbucket --output-template-file Requestor-artifacts.yaml
+      - aws cloudformation package --template-file Acceptor.yaml --s3-bucket mynewestfirstbucket --output-template-file Acceptor-artifacts.yaml
   post_build:
     commands:
       - echo Build completed on `date`
 artifacts:
   files:
-    - Requestor.yaml
-    - Requestor-artifacts.yaml
+    - Acceptor.yaml
+    - Acceptor-artifacts.yaml
